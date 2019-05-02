@@ -1,0 +1,26 @@
+FROM alpine:3.9
+
+RUN packages="build-base linux-headers openssl" && \
+  apk --update add ${packages}
+
+ENV REDIS_VERSION=4.0.14
+
+RUN cd /tmp && \
+  wget http://download.redis.io/releases/redis-${REDIS_VERSION}.tar.gz && \
+  tar xzf redis-${REDIS_VERSION}.tar.gz && \
+  cd /tmp/redis-${REDIS_VERSION} && \
+  make && \
+  make install && \
+  cp redis.conf /etc/redis.conf && \
+  adduser -D redis && \
+  mkdir /data && \
+  chown redis:redis /data && \
+  rm -rf /tmp/* && \
+  apk del ${packages} && \
+  rm -rf /var/cache/apk/*
+
+VOLUME ["/redis-data"]
+WORKDIR /redis-data
+
+EXPOSE 6379
+CMD ["redis-server"]
